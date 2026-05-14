@@ -12,6 +12,7 @@
   const AI_DEADZONE = 28;
 
   const state = {
+    playerH: PADDLE_H,
     playerY: H / 2 - PADDLE_H / 2,
     aiY: H / 2 - PADDLE_H / 2,
     ballX: W / 2,
@@ -41,10 +42,10 @@
       if (state.keys.w) state.playerY -= PLAYER_SPEED;
       if (state.keys.s) state.playerY += PLAYER_SPEED;
       if (state.mouseY !== null) {
-        const target = state.mouseY - PADDLE_H / 2;
+        const target = state.mouseY - state.playerH / 2;
         state.playerY += (target - state.playerY) * 0.25;
       }
-      state.playerY = Math.max(0, Math.min(H - PADDLE_H, state.playerY));
+      state.playerY = Math.max(0, Math.min(H - state.playerH, state.playerY));
 
       // ai — slow, lazy, only reacts when ball is heading its way
       const aiCenter = state.aiY + PADDLE_H / 2;
@@ -70,10 +71,10 @@
       if (state.ballX - BALL / 2 < 16 + PADDLE_W &&
           state.ballX - BALL / 2 > 16 - 4 &&
           state.ballY > state.playerY &&
-          state.ballY < state.playerY + PADDLE_H &&
+          state.ballY < state.playerY + state.playerH &&
           state.vx < 0) {
         state.vx *= -1.07;
-        const offset = (state.ballY - (state.playerY + PADDLE_H / 2)) / (PADDLE_H / 2);
+        const offset = (state.ballY - (state.playerY + state.playerH / 2)) / (state.playerH / 2);
         state.vy = offset * 5;
       }
 
@@ -94,7 +95,16 @@
       if (Math.abs(state.vx) > max) state.vx = Math.sign(state.vx) * max;
 
       // score
-      if (state.ballX < 0) { state.aScore++; aEl.textContent = state.aScore; reset(1); }
+      if (state.ballX < 0) {
+        state.aScore++;
+        aEl.textContent = state.aScore;
+        // grow player paddle 30% as a comeback handicap
+        const newH = Math.min(state.playerH * 1.3, H);
+        const center = state.playerY + state.playerH / 2;
+        state.playerH = newH;
+        state.playerY = Math.max(0, Math.min(H - newH, center - newH / 2));
+        reset(1);
+      }
       if (state.ballX > W) { state.pScore++; pEl.textContent = state.pScore; reset(-1); }
     }
 
@@ -118,7 +128,7 @@
 
     // paddles
     ctx.fillStyle = '#e8e8e8';
-    ctx.fillRect(16, state.playerY, PADDLE_W, PADDLE_H);
+    ctx.fillRect(16, state.playerY, PADDLE_W, state.playerH);
     ctx.fillRect(W - 16 - PADDLE_W, state.aiY, PADDLE_W, PADDLE_H);
 
     // ball
