@@ -24,7 +24,61 @@
     keys: { w: false, s: false },
     mouseY: null,
     paused: true,
+    ended: false,
+    confetti: [],
   };
+
+  function launchConfetti() {
+    const colors = ['#ff5d8f', '#ffd166', '#06d6a0', '#118ab2', '#e8e8e8', '#ef476f'];
+    for (let i = 0; i < 140; i++) {
+      state.confetti.push({
+        x: W / 2 + (Math.random() - 0.5) * 40,
+        y: H / 2,
+        vx: (Math.random() - 0.5) * 12,
+        vy: -8 - Math.random() * 6,
+        rot: Math.random() * Math.PI,
+        vr: (Math.random() - 0.5) * 0.4,
+        color: colors[(Math.random() * colors.length) | 0],
+        size: 4 + Math.random() * 5,
+        life: 1,
+      });
+    }
+  }
+
+  function drawConfetti() {
+    for (const p of state.confetti) {
+      p.vy += 0.35;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      p.life -= 0.012;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.5);
+      ctx.restore();
+    }
+    state.confetti = state.confetti.filter(p => p.life > 0 && p.y < H + 40);
+  }
+
+  function endGame() {
+    state.ended = true;
+    state.paused = true;
+    launchConfetti();
+    setTimeout(() => {
+      const wrap = canvas.parentElement;
+      const head = wrap.querySelector('.play-head');
+      const hint = wrap.querySelector('.hint');
+      const msg = document.createElement('div');
+      msg.className = 'end-msg';
+      msg.textContent = 'Now back to building.';
+      canvas.replaceWith(msg);
+      if (head) head.style.display = 'none';
+      if (hint) hint.style.display = 'none';
+    }, 2800);
+  }
 
   const pEl = document.getElementById('playerScore');
   const aEl = document.getElementById('aiScore');
@@ -105,11 +159,16 @@
         state.playerY = Math.max(0, Math.min(H - newH, center - newH / 2));
         reset(1);
       }
-      if (state.ballX > W) { state.pScore++; pEl.textContent = state.pScore; reset(-1); }
+      if (state.ballX > W) {
+        state.pScore++;
+        pEl.textContent = state.pScore;
+        if (state.pScore >= 3) { endGame(); }
+        else reset(-1);
+      }
     }
 
     draw();
-    requestAnimationFrame(step);
+    if (canvas.isConnected) requestAnimationFrame(step);
   }
 
   function draw() {
@@ -133,6 +192,11 @@
 
     // ball
     ctx.fillRect(state.ballX - BALL / 2, state.ballY - BALL / 2, BALL, BALL);
+
+    if (state.ended) {
+      drawConfetti();
+      return;
+    }
 
     // paused overlay
     if (state.paused) {
