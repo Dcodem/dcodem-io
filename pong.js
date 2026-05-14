@@ -77,7 +77,7 @@
       canvas.replaceWith(msg);
       if (head) head.style.display = 'none';
       if (hint) hint.style.display = 'none';
-    }, 2800);
+    }, 1000);
   }
 
   const pEl = document.getElementById('playerScore');
@@ -162,7 +162,7 @@
       if (state.ballX > W) {
         state.pScore++;
         pEl.textContent = state.pScore;
-        if (state.pScore >= 3) { endGame(); }
+        if (state.pScore >= 1) { endGame(); }
         else reset(-1);
       }
     }
