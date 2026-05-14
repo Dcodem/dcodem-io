@@ -4,23 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dan Code-McNeil</title>
-  <meta name="description" content="Dan Code-McNeil — fractional CRO, advisor, and angel investor." />
+  <meta name="description" content="Dan Code-McNeil — fractional advisor, angel investor, and founder-in-progress." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@300&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main>
-    <aside class="left">
+    <header>
       <img src="headshot.jpg" alt="Dan Code-McNeil" class="headshot" onerror="this.style.display='none'" />
-      <h1>DAN CODE-MCNEIL</h1>
+      <h1>Dan Code-McNeil</h1>
+      <p class="tag">Toronto · advisor · angel · building something new</p>
       <nav>
-        <a href="https://linkedin.com/in/dcodem" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://linkedin.com/in/dcodemcneil" target="_blank" rel="noopener">LinkedIn</a>
         <a href="https://github.com/Dcodem" target="_blank" rel="noopener">GitHub</a>
-        <a href="mailto:dancodemcneil@gmail.com">Contact</a>
+        <a href="mailto:dancodemcneil@gmail.com">Email</a>
       </nav>
-    </aside>
+    </header>
 
     <section class="bio">
       <p>
@@ -29,22 +30,30 @@
         messy middle between founder-led sales and a real revenue org:
         pricing, pipeline, and the GTM motion that scales.
       </p>
-
       <p>
-        Most recently, I was CRO at <a href="https://gorgias.com" target="_blank" rel="noopener">Gorgias</a>,
-        and before that CRO at <a href="https://ada.cx" target="_blank" rel="noopener">Ada</a>,
-        where I spent years close to the front lines of customer support
-        automation as it shifted from rules and macros to genuinely agentic
-        systems. I also back early-stage founders as an angel, mostly in
-        infrastructure, dev tools, and applied AI.
+        Most recently I was CRO at <a href="https://gorgias.com" target="_blank" rel="noopener">Gorgias</a>,
+        and before that CRO at <a href="https://ada.cx" target="_blank" rel="noopener">Ada</a>, where I
+        spent years close to the front lines of customer support automation
+        as it shifted from rules and macros to genuinely agentic systems.
+        I also back early-stage founders as an angel &mdash; infrastructure,
+        dev tools, and applied AI.
       </p>
-
       <p>
-        I think in systems and frameworks. I work best with teams that care
-        as much about the shape of their GTM motion as they do about the
-        product itself.
+        I think in systems and frameworks, and work best with teams who
+        care about the shape of their GTM motion as much as the product
+        itself.
       </p>
     </section>
+
+    <section class="play">
+      <div class="play-head">
+        <span class="play-label">// while you're here</span>
+        <span class="score"><span id="playerScore">0</span> : <span id="aiScore">0</span></span>
+      </div>
+      <canvas id="pong" width="640" height="320" tabindex="0"></canvas>
+      <p class="hint">click the board, then use <kbd>W</kbd> / <kbd>S</kbd> or your mouse</p>
+    </section>
   </main>
+  <script src="pong.js"></script>
 </body>
 </html>

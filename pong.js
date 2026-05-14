@@ -1,0 +1,160 @@
+(() => {
+  const canvas = document.getElementById('pong');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  const PADDLE_W = 8;
+  const PADDLE_H = 60;
+  const BALL = 7;
+  const PLAYER_SPEED = 6;
+  const AI_SPEED = 4.2;
+
+  const state = {
+    playerY: H / 2 - PADDLE_H / 2,
+    aiY: H / 2 - PADDLE_H / 2,
+    ballX: W / 2,
+    ballY: H / 2,
+    vx: 4,
+    vy: 2.5,
+    pScore: 0,
+    aScore: 0,
+    keys: { w: false, s: false },
+    mouseY: null,
+    paused: true,
+  };
+
+  const pEl = document.getElementById('playerScore');
+  const aEl = document.getElementById('aiScore');
+
+  function reset(dir) {
+    state.ballX = W / 2;
+    state.ballY = H / 2;
+    state.vx = (dir || (Math.random() < 0.5 ? 1 : -1)) * 4;
+    state.vy = (Math.random() * 4 - 2);
+  }
+
+  function step() {
+    if (!state.paused) {
+      // player input
+      if (state.keys.w) state.playerY -= PLAYER_SPEED;
+      if (state.keys.s) state.playerY += PLAYER_SPEED;
+      if (state.mouseY !== null) {
+        const target = state.mouseY - PADDLE_H / 2;
+        state.playerY += (target - state.playerY) * 0.25;
+      }
+      state.playerY = Math.max(0, Math.min(H - PADDLE_H, state.playerY));
+
+      // ai
+      const aiCenter = state.aiY + PADDLE_H / 2;
+      if (state.ballY < aiCenter - 8) state.aiY -= AI_SPEED;
+      else if (state.ballY > aiCenter + 8) state.aiY += AI_SPEED;
+      state.aiY = Math.max(0, Math.min(H - PADDLE_H, state.aiY));
+
+      // ball
+      state.ballX += state.vx;
+      state.ballY += state.vy;
+
+      // walls
+      if (state.ballY < BALL / 2) { state.ballY = BALL / 2; state.vy *= -1; }
+      if (state.ballY > H - BALL / 2) { state.ballY = H - BALL / 2; state.vy *= -1; }
+
+      // player paddle (left)
+      if (state.ballX - BALL / 2 < 16 + PADDLE_W &&
+          state.ballX - BALL / 2 > 16 - 4 &&
+          state.ballY > state.playerY &&
+          state.ballY < state.playerY + PADDLE_H &&
+          state.vx < 0) {
+        state.vx *= -1.07;
+        const offset = (state.ballY - (state.playerY + PADDLE_H / 2)) / (PADDLE_H / 2);
+        state.vy = offset * 5;
+      }
+
+      // ai paddle (right)
+      const aiX = W - 16 - PADDLE_W;
+      if (state.ballX + BALL / 2 > aiX &&
+          state.ballX + BALL / 2 < aiX + PADDLE_W + 4 &&
+          state.ballY > state.aiY &&
+          state.ballY < state.aiY + PADDLE_H &&
+          state.vx > 0) {
+        state.vx *= -1.07;
+        const offset = (state.ballY - (state.aiY + PADDLE_H / 2)) / (PADDLE_H / 2);
+        state.vy = offset * 5;
+      }
+
+      // clamp speed
+      const max = 9;
+      if (Math.abs(state.vx) > max) state.vx = Math.sign(state.vx) * max;
+
+      // score
+      if (state.ballX < 0) { state.aScore++; aEl.textContent = state.aScore; reset(1); }
+      if (state.ballX > W) { state.pScore++; pEl.textContent = state.pScore; reset(-1); }
+    }
+
+    draw();
+    requestAnimationFrame(step);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, W, H);
+
+    // center dashed line
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 8]);
+    ctx.beginPath();
+    ctx.moveTo(W / 2, 0);
+    ctx.lineTo(W / 2, H);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // paddles
+    ctx.fillStyle = '#e8e8e8';
+    ctx.fillRect(16, state.playerY, PADDLE_W, PADDLE_H);
+    ctx.fillRect(W - 16 - PADDLE_W, state.aiY, PADDLE_W, PADDLE_H);
+
+    // ball
+    ctx.fillRect(state.ballX - BALL / 2, state.ballY - BALL / 2, BALL, BALL);
+
+    // paused overlay
+    if (state.paused) {
+      ctx.fillStyle = 'rgba(5,5,5,0.7)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#888';
+      ctx.font = '14px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('click to play', W / 2, H / 2);
+    }
+  }
+
+  // input
+  canvas.addEventListener('click', () => {
+    state.paused = false;
+    canvas.focus();
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleY = H / rect.height;
+    state.mouseY = (e.clientY - rect.top) * scaleY;
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    state.mouseY = null;
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement !== canvas) return;
+    if (e.key === 'w' || e.key === 'W') state.keys.w = true;
+    if (e.key === 's' || e.key === 'S') state.keys.s = true;
+    if (e.key === ' ') { state.paused = !state.paused; e.preventDefault(); }
+  });
+
+  document.addEventListener('keyup', (e) => {
+    if (e.key === 'w' || e.key === 'W') state.keys.w = false;
+    if (e.key === 's' || e.key === 'S') state.keys.s = false;
+  });
+
+  step();
+})();
