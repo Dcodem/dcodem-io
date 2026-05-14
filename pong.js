@@ -8,7 +8,8 @@
   const PADDLE_H = 60;
   const BALL = 7;
   const PLAYER_SPEED = 6;
-  const AI_SPEED = 4.2;
+  const AI_SPEED = 2.8;
+  const AI_DEADZONE = 28;
 
   const state = {
     playerY: H / 2 - PADDLE_H / 2,
@@ -45,10 +46,16 @@
       }
       state.playerY = Math.max(0, Math.min(H - PADDLE_H, state.playerY));
 
-      // ai
+      // ai — slow, lazy, only reacts when ball is heading its way
       const aiCenter = state.aiY + PADDLE_H / 2;
-      if (state.ballY < aiCenter - 8) state.aiY -= AI_SPEED;
-      else if (state.ballY > aiCenter + 8) state.aiY += AI_SPEED;
+      if (state.vx > 0) {
+        if (state.ballY < aiCenter - AI_DEADZONE) state.aiY -= AI_SPEED;
+        else if (state.ballY > aiCenter + AI_DEADZONE) state.aiY += AI_SPEED;
+      } else {
+        // drift back to center when not engaged
+        const home = H / 2 - PADDLE_H / 2;
+        state.aiY += (home - state.aiY) * 0.02;
+      }
       state.aiY = Math.max(0, Math.min(H - PADDLE_H, state.aiY));
 
       // ball
